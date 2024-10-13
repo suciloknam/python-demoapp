@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git changelog: false, poll: false, url: 'https://github.com/suciloknam/python-demoapp.git'
+            }
+        }
+        
+        stage('docker build'){
+            steps {
+                sh "make image"   
+            }
+        }
+        
+        stage('docker push'){
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: '907fcba2-7c16-4ee8-bd7d-4a3e45138ae4', toolName: 'docker') {
+                    // some block
+                          sh "make push"
+                    }
+                }   
+            }
+        }  
+        
+        stage('docker deploy'){
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: '907fcba2-7c16-4ee8-bd7d-4a3e45138ae4', toolName: 'docker') {
+                    // some block
+                          sh "docker images"
+                          sh "docker run -d  --rm -it -p 5000:5000 docker.io/ramana2020/python-demoapp:latest"
+                    }
+                }   
+            }
+        }
+    }
+}
